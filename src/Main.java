@@ -1,6 +1,5 @@
 import java.io.File;
 import java.util.Scanner;
-
 public class Main {
     public static void main(String[] args) {
         filePath();
@@ -15,10 +14,10 @@ public class Main {
             boolean isDirectory = file.isDirectory();
             if (fileExists == false) {
                 System.out.println("Указанный файл не существует");
-            } else if (isDirectory == true){
+            } else if (isDirectory == true) {
                 System.out.println("Указанный путь является путём к папке, а не к файлу");
                 continue;
-            } else if (fileExists == true){
+            } else if (fileExists == true) {
                 count++;
                 System.out.println("Путь указан верно. Это файл номер " + count);
             }
