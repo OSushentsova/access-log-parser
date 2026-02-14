@@ -16,7 +16,8 @@ public class Statistics {
     private int googlebotCount;
     private int yandexbotCount;
 
-     private final HashSet<String> existingPages;
+    private final HashSet<String> existingPages;
+    private final HashSet<String> nonExistingPages;
 
     public Statistics() {
         this.totalTraffic = 0;
@@ -28,6 +29,7 @@ public class Statistics {
         this.totalEntries = 0;
         this.googlebotCount = 0;
         this.yandexbotCount = 0;
+        this.nonExistingPages = new HashSet<>();
     }
 
     public void addEntry(LogEntry entry) {
@@ -44,8 +46,13 @@ public class Statistics {
             maxTime = entryTime;
         }
 
+        int responseCode = entry.getResponseCode();
+        String path = entry.getPath();
+
         if (entry.getResponseCode() == 200) {
-            existingPages.add(entry.getPath());
+            existingPages.add(path);
+        } else if (responseCode == 404) {
+            nonExistingPages.add(path);
         }
 
         String os = entry.getAgent().getOs();
@@ -79,6 +86,9 @@ public class Statistics {
     public HashSet<String> getExistingPages() {
         return new HashSet<>(existingPages);
     }
+    public HashSet<String> getNonExistingPages() {
+        return new HashSet<>(nonExistingPages);
+    }
 
     public HashMap<String, Double> getOsStatistics() {
         HashMap<String, Double> osShares = new HashMap<>();
@@ -93,6 +103,21 @@ public class Statistics {
         }
 
         return osShares;
+    }
+
+    public HashMap<String, Double> getBrowserStatistics() {
+        HashMap<String, Double> browserShares = new HashMap<>();
+
+        if (totalEntries == 0) {
+            return browserShares;
+        }
+
+        for (Map.Entry<String, Integer> entry : browserCounts.entrySet()) {
+            double share = (double) entry.getValue() / totalEntries;
+            browserShares.put(entry.getKey(), share);
+        }
+
+        return browserShares;
     }
 
     public Map<String, Integer> getBrowserCounts() {
