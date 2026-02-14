@@ -1,6 +1,8 @@
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Scanner;
 import java.util.Map;
 
@@ -91,11 +93,36 @@ public class Main {
                     System.out.printf("Доля YandexBot: %.2f%%\n", yandexShare);
                 }
 
-                System.out.println("\n=== СТАТИСТИКА ПО ОПЕРАЦИОННЫМ СИСТЕМАМ ===");
-                Map<String, Integer> osStats = stats.getOsCounts();
-                for (Map.Entry<String, Integer> entry : osStats.entrySet()) {
-                    double percentage = (double) entry.getValue() / stats.getTotalEntries() * 100;
-                    System.out.printf("%s: %d (%.2f%%)\n", entry.getKey(), entry.getValue(), percentage);
+                System.out.println("\n=== СПИСОК СУЩЕСТВУЮЩИХ СТРАНИЦ (код 200) ===");
+                HashSet<String> pages = stats.getExistingPages();
+                if (pages.isEmpty()) {
+                    System.out.println("Страницы с кодом 200 не найдены");
+                } else {
+                    System.out.println("Всего уникальных страниц: " + pages.size());
+                    int count = 0;
+                    for (String page : pages) {
+                        System.out.println("  " + page);
+                        count++;
+                        if (count >= 10) {
+                            System.out.println("  ... и еще " + (pages.size() - 10));
+                            break;
+                        }
+                    }
+                }
+
+                System.out.println("\n=== СТАТИСТИКА ОПЕРАЦИОННЫХ СИСТЕМ (доли) ===");
+                HashMap<String, Double> osShares = stats.getOsStatistics();
+                if (osShares.isEmpty()) {
+                    System.out.println("Нет данных по операционным системам");
+                } else {
+                    osShares.entrySet().stream()
+                            .sorted((e1, e2) -> Double.compare(e2.getValue(), e1.getValue()))
+                            .forEach(entry -> {
+                                System.out.printf("%s: %.4f (%.2f%%)\n",
+                                        entry.getKey(),
+                                        entry.getValue(),
+                                        entry.getValue() * 100);
+                            });
                 }
 
                 System.out.println("\n=== СТАТИСТИКА ПО БРАУЗЕРАМ ===");
