@@ -81,7 +81,6 @@ public class Statistics {
         if (isBot) {
             totalBotRequests++;
         } else {
-            // Это реальный пользователь
             totalUserRequests++;
             uniqueUserIps.add(entry.getIp());
         }
@@ -123,7 +122,6 @@ public class Statistics {
         return (double) totalUserRequests / hours;
     }
 
-    // НОВЫЙ МЕТОД: среднее количество ошибочных запросов в час
     public double getAverageErrorsPerHour() {
         if (minTime == null || maxTime == null || totalErrorRequests == 0) {
             return 0;
@@ -139,7 +137,6 @@ public class Statistics {
         return (double) totalErrorRequests / hours;
     }
 
-    // НОВЫЙ МЕТОД: средняя посещаемость одним пользователем (не ботом)
     public double getAverageVisitsPerUser() {
         if (uniqueUserIps.isEmpty() || totalUserRequests == 0) {
             return 0;
@@ -148,9 +145,6 @@ public class Statistics {
         return (double) totalUserRequests / uniqueUserIps.size();
     }
 
-    // Методы с использованием Stream API для статистики
-
-    // Статистика ОС с сортировкой по убыванию доли
     public Map<String, Double> getOsStatisticsSorted() {
         return getOsStatistics().entrySet().stream()
                 .sorted(Map.Entry.<String, Double>comparingByValue().reversed())
@@ -162,7 +156,6 @@ public class Statistics {
                 ));
     }
 
-    // Статистика браузеров с сортировкой по убыванию доли
     public Map<String, Double> getBrowserStatisticsSorted() {
         return getBrowserStatistics().entrySet().stream()
                 .sorted(Map.Entry.<String, Double>comparingByValue().reversed())
@@ -174,7 +167,6 @@ public class Statistics {
                 ));
     }
 
-    // Фильтрация только реальных браузеров (исключая ботов)
     public Map<String, Integer> getRealBrowserCounts() {
         return browserCounts.entrySet().stream()
                 .filter(entry -> !isBotBrowser(entry.getKey()))
@@ -184,8 +176,6 @@ public class Statistics {
                 ));
     }
 
-
-    // Фильтрация только ботов
     public Map<String, Integer> getBotBrowserCounts() {
         return browserCounts.entrySet().stream()
                 .filter(entry -> isBotBrowser(entry.getKey()))
@@ -195,7 +185,6 @@ public class Statistics {
                 ));
     }
 
-    // Вспомогательный метод для определения бота по имени браузера
     private boolean isBotBrowser(String browser) {
         return browser.equals("Googlebot") ||
                 browser.equals("YandexBot") ||

@@ -92,10 +92,8 @@ public class LogEntry {
 
     public String getIp() { return ipAddr; }
     public LocalDateTime getDateTime() { return time; }
-    public HttpMethod getMethod() { return method; }
     public String getPath() { return path; }
     public int getResponseCode() { return responseCode; }
     public int getResponseSize() { return responseSize; }
-    public String getReferer() { return referer; }
     public UserAgent getAgent() { return agent; }
 }
