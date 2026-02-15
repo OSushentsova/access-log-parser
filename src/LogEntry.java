@@ -96,4 +96,5 @@ public class LogEntry {
     public int getResponseCode() { return responseCode; }
     public int getResponseSize() { return responseSize; }
     public UserAgent getAgent() { return agent; }
+    public String getReferer() { return referer; }
 }
