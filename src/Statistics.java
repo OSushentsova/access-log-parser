@@ -24,6 +24,10 @@ public class Statistics {
     private final HashSet<String> uniqueUserIps;
     private int totalUserRequests;
 
+    private final Map<Integer, Integer> visitsPerSecond;
+    private final HashSet<String> refererDomains;
+    private final Map<String, Integer> visitsPerUser;
+
     public Statistics() {
         this.totalTraffic = 0;
         this.minTime = null;
@@ -40,6 +44,10 @@ public class Statistics {
         this.totalErrorRequests = 0;
         this.uniqueUserIps = new HashSet<>();
         this.totalUserRequests = 0;
+
+        this.visitsPerSecond = new HashMap<>();
+        this.refererDomains = new HashSet<>();
+        this.visitsPerUser = new HashMap<>();
     }
 
     public void addEntry(LogEntry entry) {
@@ -83,12 +91,54 @@ public class Statistics {
         } else {
             totalUserRequests++;
             uniqueUserIps.add(entry.getIp());
+            String ip = entry.getIp();
+            visitsPerUser.put(ip, visitsPerUser.getOrDefault(ip, 0) + 1);
+
+            int secondKey = entryTime.getSecond();
+            visitsPerSecond.put(secondKey, visitsPerSecond.getOrDefault(secondKey, 0) + 1);
+        }
+
+        String referer = entry.getReferer();
+        if (referer != null && !referer.isEmpty() && !referer.equals("-")) {
+            String domain = extractDomain(referer);
+            if (domain != null && !domain.isEmpty()) {
+                refererDomains.add(domain);
+            }
         }
 
         if (browser.equals("Googlebot")) {
             googlebotCount++;
         } else if (browser.equals("YandexBot")) {
             yandexbotCount++;
+        }
+    }
+
+    private String extractDomain(String url) {
+        try {
+            String domain = url.toLowerCase();
+            if (domain.startsWith("http://")) {
+                domain = domain.substring(7);
+            } else if (domain.startsWith("https://")) {
+                domain = domain.substring(8);
+            }
+
+            int slashIndex = domain.indexOf('/');
+            if (slashIndex > 0) {
+                domain = domain.substring(0, slashIndex);
+            }
+
+            int portIndex = domain.indexOf(':');
+            if (portIndex > 0) {
+                domain = domain.substring(0, portIndex);
+            }
+
+            if (domain.startsWith("www.")) {
+                domain = domain.substring(4);
+            }
+
+            return domain;
+        } catch (Exception e) {
+            return null;
         }
     }
 
@@ -107,42 +157,32 @@ public class Statistics {
         return (double) totalTraffic / hours;
     }
 
-    public double getAverageVisitsPerHour() {
-        if (minTime == null || maxTime == null || totalUserRequests == 0) {
-            return 0;
-        }
+    public int getPeakVisitsPerSecond() {
+        return visitsPerSecond.values().stream()
+                .mapToInt(Integer::intValue)
+                .max()
+                .orElse(0);
 
-        Duration duration = Duration.between(minTime, maxTime);
-        long hours = duration.toHours();
 
-        if (hours == 0) {
-            return totalUserRequests;
-        }
-
-        return (double) totalUserRequests / hours;
     }
 
-    public double getAverageErrorsPerHour() {
-        if (minTime == null || maxTime == null || totalErrorRequests == 0) {
-            return 0;
-        }
-
-        Duration duration = Duration.between(minTime, maxTime);
-        long hours = duration.toHours();
-
-        if (hours == 0) {
-            return totalErrorRequests;
-        }
-
-        return (double) totalErrorRequests / hours;
+    public HashSet<String> getRefererDomains() {
+        return new HashSet<>(refererDomains);
     }
 
-    public double getAverageVisitsPerUser() {
-        if (uniqueUserIps.isEmpty() || totalUserRequests == 0) {
-            return 0;
-        }
+    public int getMaxVisitsPerUser() {
+        return visitsPerUser.values().stream()
+                .mapToInt(Integer::intValue)
+                .max()
+                .orElse(0);
+    }
 
-        return (double) totalUserRequests / uniqueUserIps.size();
+    public Map<String, Integer> getVisitsPerUser() {
+        return new HashMap<>(visitsPerUser);
+    }
+
+    public Map<Integer, Integer> getVisitsPerSecond() {
+        return new HashMap<>(visitsPerSecond);
     }
 
     public Map<String, Double> getOsStatisticsSorted() {
@@ -247,5 +287,41 @@ public class Statistics {
     public int getUniqueUserIpsCount() { return uniqueUserIps.size(); }
     public int getTotalUserRequests() { return totalUserRequests; }
 
+    public double getAverageVisitsPerHour() {
+        if (minTime == null || maxTime == null || totalUserRequests == 0) {
+            return 0;
+        }
 
+        Duration duration = Duration.between(minTime, maxTime);
+        long hours = duration.toHours();
+
+        if (hours == 0) {
+            return totalUserRequests;
+        }
+
+        return (double) totalUserRequests / hours;
+    }
+
+    public double getAverageErrorsPerHour() {
+        if (minTime == null || maxTime == null || totalErrorRequests == 0) {
+            return 0;
+        }
+
+        Duration duration = Duration.between(minTime, maxTime);
+        long hours = duration.toHours();
+
+        if (hours == 0) {
+            return totalErrorRequests;
+        }
+
+        return (double) totalErrorRequests / hours;
+    }
+
+    public double getAverageVisitsPerUser() {
+        if (uniqueUserIps.isEmpty() || totalUserRequests == 0) {
+            return 0;
+        }
+
+        return (double) totalUserRequests / uniqueUserIps.size();
+    }
 }

@@ -89,10 +89,30 @@ public class Main {
                 System.out.println("\n=== СТАТИСТИКА ПО ПОЛЬЗОВАТЕЛЯМ ===");
                 System.out.println("Запросов от реальных пользователей: " + stats.getTotalUserRequests());
                 System.out.println("Уникальных пользователей (по IP): " + stats.getUniqueUserIpsCount());
+                System.out.printf("\nМаксимальная посещаемость одним пользователем: %d\n",
+                        stats.getMaxVisitsPerUser());
 
                 System.out.println("\n=== СТАТИСТИКА СТРАНИЦ ===");
                 System.out.println("Существующие страницы (код 200): " + stats.getExistingPages().size());
                 System.out.println("Несуществующие страницы (код 404): " + stats.getNonExistingPages().size());
+
+                System.out.println("\n=== СПИСОК САЙТОВ, С КОТОРЫХ ЕСТЬ ССЫЛКИ ===");
+                HashSet<String> refererDomains = stats.getRefererDomains();
+                if (refererDomains.isEmpty()) {
+                    System.out.println("Нет данных о referer-ах");
+                } else {
+                    System.out.println("Всего уникальных доменов: " + refererDomains.size());
+                    // Выводим первые 10 для примера
+                    int count = 0;
+                    for (String domain : refererDomains) {
+                        System.out.println("  " + domain);
+                        count++;
+                        if (count >= 10) {
+                            System.out.println("  ... и еще " + (refererDomains.size() - 10));
+                            break;
+                        }
+                    }
+                }
 
                 System.out.println("\n=== СТАТИСТИКА ОШИБОК ===");
                 System.out.println("Запросов с ошибками (4xx, 5xx): " + stats.getTotalErrorRequests());
@@ -108,6 +128,8 @@ public class Main {
                         stats.getAverageVisitsPerUser());
                 System.out.println("Первый запрос: " + stats.getMinTime());
                 System.out.println("Последний запрос: " + stats.getMaxTime());
+                System.out.printf("Пиковая посещаемость сайта (в секунду): %d\n",
+                        stats.getPeakVisitsPerSecond());
 
                 System.out.println("\n=== СТАТИСТИКА ОПЕРАЦИОННЫХ СИСТЕМ (сортировка Stream API) ===");
                 Map<String, Double> osStats = stats.getOsStatisticsSorted();
