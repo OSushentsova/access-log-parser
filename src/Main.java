@@ -93,18 +93,38 @@ public class Main {
                     System.out.printf("Доля YandexBot: %.2f%%\n", yandexShare);
                 }
 
-                System.out.println("\n=== СПИСОК СУЩЕСТВУЮЩИХ СТРАНИЦ (код 200) ===");
-                HashSet<String> pages = stats.getExistingPages();
-                if (pages.isEmpty()) {
-                    System.out.println("Страницы с кодом 200 не найдены");
+                System.out.println("\n=== СТАТИСТИКА СТРАНИЦ ===");
+                HashSet<String> existingPages = stats.getExistingPages();
+                HashSet<String> nonExistingPages = stats.getNonExistingPages();
+
+                System.out.println("Существующие страницы (код 200):");
+                if (existingPages.isEmpty()) {
+                    System.out.println("  Страницы с кодом 200 не найдены");
                 } else {
-                    System.out.println("Всего уникальных страниц: " + pages.size());
+                    System.out.println("  Всего уникальных страниц: " + existingPages.size());
+                    // Выводим первые 5 для примера
                     int count = 0;
-                    for (String page : pages) {
-                        System.out.println("  " + page);
+                    for (String page : existingPages) {
+                        System.out.println("    " + page);
                         count++;
-                        if (count >= 10) {
-                            System.out.println("  ... и еще " + (pages.size() - 10));
+                        if (count >= 5) {
+                            System.out.println("    ... и еще " + (existingPages.size() - 5));
+                            break;
+                        }
+                    }
+                }
+                System.out.println("\nНесуществующие страницы (код 404):");
+                if (nonExistingPages.isEmpty()) {
+                    System.out.println("  Страницы с кодом 404 не найдены");
+                } else {
+                    System.out.println("  Всего уникальных страниц: " + nonExistingPages.size());
+                    // Выводим первые 5 для примера
+                    int count = 0;
+                    for (String page : nonExistingPages) {
+                        System.out.println("    " + page);
+                        count++;
+                        if (count >= 5) {
+                            System.out.println("    ... и еще " + (nonExistingPages.size() - 5));
                             break;
                         }
                     }
@@ -125,11 +145,20 @@ public class Main {
                             });
                 }
 
-                System.out.println("\n=== СТАТИСТИКА ПО БРАУЗЕРАМ ===");
-                Map<String, Integer> browserStats = stats.getBrowserCounts();
-                for (Map.Entry<String, Integer> entry : browserStats.entrySet()) {
-                    double percentage = (double) entry.getValue() / stats.getTotalEntries() * 100;
-                    System.out.printf("%s: %d (%.2f%%)\n", entry.getKey(), entry.getValue(), percentage);
+                System.out.println("\n=== СТАТИСТИКА БРАУЗЕРОВ (доли) ===");
+                HashMap<String, Double> browserShares = stats.getBrowserStatistics();
+                if (browserShares.isEmpty()) {
+                    System.out.println("Нет данных по браузерам");
+                } else {
+                    // Сортируем по убыванию доли
+                    browserShares.entrySet().stream()
+                            .sorted((e1, e2) -> Double.compare(e2.getValue(), e1.getValue()))
+                            .forEach(entry -> {
+                                System.out.printf("%s: %.4f (%.2f%%)\n",
+                                        entry.getKey(),
+                                        entry.getValue(),
+                                        entry.getValue() * 100);
+                            });
                 }
 
                 System.out.println("\n=== СТАТИСТИКА ТРАФИКА ===");
