@@ -1,14 +1,15 @@
 import java.util.Locale;
 
 public class UserAgent {
-
+    private final String rawUserAgent;
     private final String browser;
     private final String os;
 
     public UserAgent(String userAgentString) {
+        this.rawUserAgent = userAgentString != null ? userAgentString : "";
+        this.browser = extractBrowser(this.rawUserAgent);
+        this.os = extractOS(this.rawUserAgent);
 
-        this.browser = extractBrowser(userAgentString);
-        this.os = extractOS(userAgentString);
     }
 
     private String extractBrowser(String ua) {
@@ -62,4 +63,11 @@ public class UserAgent {
     public String getOs() {
         return os;
     }
+
+    public String getRawUserAgent() {
+        return rawUserAgent;
+    }
+
+
+
 }

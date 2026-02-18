@@ -24,6 +24,9 @@ public class LogEntry {
 
             int dateStart = remaining.indexOf('[');
             int dateEnd = remaining.indexOf(']');
+            if (dateStart == -1 || dateEnd == -1) {
+                throw new IllegalArgumentException("Не найден формат даты");
+            }
             String dateStr = remaining.substring(dateStart + 1, dateEnd);
             this.time = LocalDateTime.parse(dateStr, DATE_FORMATTER);
 
@@ -31,6 +34,9 @@ public class LogEntry {
 
             int quoteStart = remaining.indexOf('"');
             int quoteEnd = remaining.indexOf('"', quoteStart + 1);
+            if (quoteStart == -1 || quoteEnd == -1) {
+                throw new IllegalArgumentException("Не найден HTTP-запрос");
+            }
             String requestLine = remaining.substring(quoteStart + 1, quoteEnd);
             String[] requestParts = requestLine.split(" ");
 
@@ -74,7 +80,7 @@ public class LogEntry {
     }
 
     private int parseSize(String sizeStr) {
-        if (sizeStr.equals("-")) {
+        if (sizeStr == null || sizeStr.equals("-")) {
             return 0;
         }
         try {
@@ -84,10 +90,10 @@ public class LogEntry {
         }
     }
 
+    public String getIp() { return ipAddr; }
     public LocalDateTime getDateTime() { return time; }
     public String getPath() { return path; }
     public int getResponseCode() { return responseCode; }
     public int getResponseSize() { return responseSize; }
-    public String getReferer() { return referer; }
     public UserAgent getAgent() { return agent; }
 }

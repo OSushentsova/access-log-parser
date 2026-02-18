@@ -41,6 +41,7 @@ public class Main {
 
             Statistics stats = new Statistics();
             int totalRequests = 0;
+            int parseErrors = 0;
             int googlebotCount = 0;
             int yandexbotCount = 0;
 
@@ -80,92 +81,61 @@ public class Main {
                     }
                 }
 
-                System.out.println("Общее количество запросов (строк): " + totalRequests);
-                System.out.println("\n=== СТАТИСТИКА ПО БОТАМ ===");
-                System.out.println("Запросов от Googlebot: " + googlebotCount);
-                System.out.println("Запросов от YandexBot: " + yandexbotCount);
+                System.out.println("\n=== ОБЩАЯ СТАТИСТИКА ===");
+                System.out.println("Всего строк в файле: " + totalRequests);
+                System.out.println("Успешно обработано: " + stats.getTotalEntries());
+                System.out.println("Ошибок парсинга: " + parseErrors);
 
-                if (totalRequests > 0) {
-                    double googleShare = (double) googlebotCount / totalRequests * 100;
-                    double yandexShare = (double) yandexbotCount / totalRequests * 100;
-
-                    System.out.printf("Доля Googlebot: %.2f%%\n", googleShare);
-                    System.out.printf("Доля YandexBot: %.2f%%\n", yandexShare);
-                }
+                System.out.println("\n=== СТАТИСТИКА ПО ПОЛЬЗОВАТЕЛЯМ ===");
+                System.out.println("Запросов от реальных пользователей: " + stats.getTotalUserRequests());
+                System.out.println("Уникальных пользователей (по IP): " + stats.getUniqueUserIpsCount());
 
                 System.out.println("\n=== СТАТИСТИКА СТРАНИЦ ===");
-                HashSet<String> existingPages = stats.getExistingPages();
-                HashSet<String> nonExistingPages = stats.getNonExistingPages();
+                System.out.println("Существующие страницы (код 200): " + stats.getExistingPages().size());
+                System.out.println("Несуществующие страницы (код 404): " + stats.getNonExistingPages().size());
 
-                System.out.println("Существующие страницы (код 200):");
-                if (existingPages.isEmpty()) {
-                    System.out.println("  Страницы с кодом 200 не найдены");
-                } else {
-                    System.out.println("  Всего уникальных страниц: " + existingPages.size());
-                    // Выводим первые 5 для примера
-                    int count = 0;
-                    for (String page : existingPages) {
-                        System.out.println("    " + page);
-                        count++;
-                        if (count >= 5) {
-                            System.out.println("    ... и еще " + (existingPages.size() - 5));
-                            break;
-                        }
-                    }
-                }
-                System.out.println("\nНесуществующие страницы (код 404):");
-                if (nonExistingPages.isEmpty()) {
-                    System.out.println("  Страницы с кодом 404 не найдены");
-                } else {
-                    System.out.println("  Всего уникальных страниц: " + nonExistingPages.size());
-                    // Выводим первые 5 для примера
-                    int count = 0;
-                    for (String page : nonExistingPages) {
-                        System.out.println("    " + page);
-                        count++;
-                        if (count >= 5) {
-                            System.out.println("    ... и еще " + (nonExistingPages.size() - 5));
-                            break;
-                        }
-                    }
-                }
+                System.out.println("\n=== СТАТИСТИКА ОШИБОК ===");
+                System.out.println("Запросов с ошибками (4xx, 5xx): " + stats.getTotalErrorRequests());
 
-                System.out.println("\n=== СТАТИСТИКА ОПЕРАЦИОННЫХ СИСТЕМ (доли) ===");
-                HashMap<String, Double> osShares = stats.getOsStatistics();
-                if (osShares.isEmpty()) {
-                    System.out.println("Нет данных по операционным системам");
-                } else {
-                    osShares.entrySet().stream()
-                            .sorted((e1, e2) -> Double.compare(e2.getValue(), e1.getValue()))
-                            .forEach(entry -> {
-                                System.out.printf("%s: %.4f (%.2f%%)\n",
-                                        entry.getKey(),
-                                        entry.getValue(),
-                                        entry.getValue() * 100);
-                            });
-                }
-
-                System.out.println("\n=== СТАТИСТИКА БРАУЗЕРОВ (доли) ===");
-                HashMap<String, Double> browserShares = stats.getBrowserStatistics();
-                if (browserShares.isEmpty()) {
-                    System.out.println("Нет данных по браузерам");
-                } else {
-                    // Сортируем по убыванию доли
-                    browserShares.entrySet().stream()
-                            .sorted((e1, e2) -> Double.compare(e2.getValue(), e1.getValue()))
-                            .forEach(entry -> {
-                                System.out.printf("%s: %.4f (%.2f%%)\n",
-                                        entry.getKey(),
-                                        entry.getValue(),
-                                        entry.getValue() * 100);
-                            });
-                }
-
-                System.out.println("\n=== СТАТИСТИКА ТРАФИКА ===");
+                System.out.println("\n=== СРЕДНИЕ ЗНАЧЕНИЯ ===");
                 System.out.println("Общий трафик: " + stats.getTotalTraffic() + " байт");
+                System.out.printf("Средний трафик в час: %.2f байт/час\n", stats.getTrafficRate());
+                System.out.printf("Среднее количество посещений пользователей в час: %.2f\n",
+                        stats.getAverageVisitsPerHour());
+                System.out.printf("Среднее количество ошибок в час: %.2f\n",
+                        stats.getAverageErrorsPerHour());
+                System.out.printf("Средняя посещаемость одним пользователем: %.2f\n",
+                        stats.getAverageVisitsPerUser());
                 System.out.println("Первый запрос: " + stats.getMinTime());
                 System.out.println("Последний запрос: " + stats.getMaxTime());
-                System.out.printf("Средний трафик в час: %.2f байт/час\n", stats.getTrafficRate());
+
+                System.out.println("\n=== СТАТИСТИКА ОПЕРАЦИОННЫХ СИСТЕМ (сортировка Stream API) ===");
+                Map<String, Double> osStats = stats.getOsStatisticsSorted();
+                for (Map.Entry<String, Double> entry : osStats.entrySet()) {
+                    System.out.printf("%s: %.4f (%.2f%%)\n",
+                            entry.getKey(), entry.getValue(), entry.getValue() * 100);
+                }
+
+                System.out.println("\n=== СТАТИСТИКА БРАУЗЕРОВ (сортировка Stream API) ===");
+                Map<String, Double> browserStats = stats.getBrowserStatisticsSorted();
+                for (Map.Entry<String, Double> entry : browserStats.entrySet()) {
+                    System.out.printf("%s: %.4f (%.2f%%)\n",
+                            entry.getKey(), entry.getValue(), entry.getValue() * 100);
+                }
+
+                System.out.println("\n=== СТАТИСТИКА ПО БОТАМ ===");
+                System.out.println("Всего запросов от ботов: " + stats.getTotalBotRequests());
+                System.out.println("Из них Googlebot: " + stats.getBrowserCounts().getOrDefault("Googlebot", 0));
+                System.out.println("Из них YandexBot: " + stats.getBrowserCounts().getOrDefault("YandexBot", 0));
+
+                System.out.println("\n=== ТОЛЬКО РЕАЛЬНЫЕ БРАУЗЕРЫ (без ботов) ===");
+                Map<String, Integer> realBrowsers = stats.getRealBrowserCounts();
+                int realTotal = realBrowsers.values().stream().mapToInt(Integer::intValue).sum();
+                for (Map.Entry<String, Integer> entry : realBrowsers.entrySet()) {
+                    double percentage = (double) entry.getValue() / realTotal * 100;
+                    System.out.printf("%s: %d (%.2f%% от реальных)\n",
+                            entry.getKey(), entry.getValue(), percentage);
+                }
 
             } catch (LineTooLongException e) {
                 System.out.println("Ошибка: " + e.getMessage());
